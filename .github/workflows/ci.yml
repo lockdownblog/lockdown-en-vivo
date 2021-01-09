@@ -1,0 +1,20 @@
+name: Mi primer pipeline
+
+on: [push, pull_request] 
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Configura .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      
+      - name: Compilar aplicación
+        run: |
+          dotnet build
