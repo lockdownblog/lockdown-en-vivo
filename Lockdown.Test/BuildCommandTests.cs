@@ -21,7 +21,7 @@ namespace Lockdown.Test
             // Assert
             string writtenText = testConsole.GetWrittenContent();
 
-            writtenText.ShouldBe("You executed the build command\r\n");
+            writtenText.ShouldBe("You executed the build command" + Environment.NewLine);
         }
     }
 }
