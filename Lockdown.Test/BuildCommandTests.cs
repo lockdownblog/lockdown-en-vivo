@@ -2,6 +2,7 @@ using Lockdown.Commands;
 using System;
 using Xunit;
 using Lockdown.Test.Utils;
+using Shouldly;
 
 namespace Lockdown.Test
 {
@@ -10,14 +11,17 @@ namespace Lockdown.Test
         [Fact]
         public void TestWriteToConsole()
         {
+            // Setup
             var testConsole = new TestConsole();
             var buildCommand = new BuildCommand(testConsole);
 
+            // Act
             buildCommand.OnExecute();
 
+            // Assert
             string writtenText = testConsole.GetWrittenContent();
 
-            Assert.Equal("You executed the build command\r\n", writtenText);
+            writtenText.ShouldBe("You executed the build command\r\n");
         }
     }
 }
