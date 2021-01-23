@@ -13,7 +13,7 @@
 
         public int OnExecute()
         {
-            this.console.WriteLine("You executed the build command");
+            this.console.WriteLine("This is a alfa version. Do not use me please!");
             return 0;
         }
     }
