@@ -5,6 +5,28 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  
+  <PropertyGroup>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>lockdown-test</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+
+    <PackageId>Lockdown.Tutorial</PackageId>
+    <AssemblyVersion>0.0.1</AssemblyVersion>
+    <Version>0.0.1</Version>
+
+    <Authors>Cosme Fulanito</Authors>
+    <Title>lockdown test</Title>
+    <PackageDescription>A static website generator</PackageDescription>
+    <Description>A static website generator</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/lockdownblog/lockdown-en-vivo/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lockdownblog/lockdown-en-vivo/</RepositoryUrl>
+    <!-- <PackageIcon>icon.png</PackageIcon> -->
+    <PackageTags>static;static-website;website;website-generator;html;jekyll;hugo</PackageTags>
+
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />

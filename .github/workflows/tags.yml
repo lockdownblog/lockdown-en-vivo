@@ -1,0 +1,33 @@
+name: Tagging pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Configura .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      
+      - name: Compilar aplicación
+        run: |
+          dotnet build
+      
+      - name: Probar aplicación
+        run: |
+          dotnet test
+
+      - name: Empaquetar
+        run: dotnet pack -c Release
+
+      - name: Publicar a NuGet
+        run: dotnet nuget push -k ${{ secrets.NUGET_KEY }} -s https://www.nuget.org Lockdown/nupkg/
