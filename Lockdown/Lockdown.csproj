@@ -12,8 +12,8 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
 
     <PackageId>Lockdown.Tutorial</PackageId>
-    <AssemblyVersion>0.0.1</AssemblyVersion>
-    <Version>0.0.1</Version>
+    <AssemblyVersion>0.0.2</AssemblyVersion>
+    <Version>0.0.2</Version>
 
     <Authors>Cosme Fulanito</Authors>
     <Title>lockdown test</Title>
