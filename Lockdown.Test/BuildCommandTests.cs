@@ -21,7 +21,7 @@ namespace Lockdown.Test
             // Assert
             string writtenText = testConsole.GetWrittenContent();
 
-            writtenText.ShouldBe("This is a alfa version. Do not use me please!" + Environment.NewLine);
+            writtenText.ShouldBe("This is an alfa version. Do not use me please!" + Environment.NewLine);
         }
     }
 }
