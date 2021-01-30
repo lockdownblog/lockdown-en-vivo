@@ -1,5 +1,6 @@
 namespace Lockdown
 {
+    using Lockdown.Build;
     using Lockdown.Commands;
     using McMaster.Extensions.CommandLineUtils;
     using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ namespace Lockdown
         public static int Main(string[] args)
         {
             ServiceProvider services = new ServiceCollection()
+                .AddSingleton<ISiteBuilder, SiteBuilder>()
                 .AddSingleton<IConsole>(PhysicalConsole.Singleton)
                 .BuildServiceProvider();
 

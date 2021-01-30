@@ -3,6 +3,8 @@ using System;
 using Xunit;
 using Lockdown.Test.Utils;
 using Shouldly;
+using Moq;
+using Lockdown.Build;
 
 namespace Lockdown.Test
 {
@@ -13,15 +15,18 @@ namespace Lockdown.Test
         {
             // Setup
             var testConsole = new TestConsole();
-            var buildCommand = new BuildCommand(testConsole);
+            var mockSiteBuilder = new Mock<ISiteBuilder>();
+            var inputPath = "./luis_rosales";
+            var outputPath = "./ariel/likes";
+            var buildCommand = new BuildCommand(testConsole, siteBuilder: mockSiteBuilder.Object);
+            buildCommand.InputPath = inputPath;
+            buildCommand.OutputPath = outputPath;
 
             // Act
             buildCommand.OnExecute();
 
             // Assert
-            string writtenText = testConsole.GetWrittenContent();
-
-            writtenText.ShouldBe("This is an alfa version. Do not use me please!" + Environment.NewLine);
+            mockSiteBuilder.Verify(sb => sb.Build(inputPath, outputPath), Times.Once);
         }
     }
 }
