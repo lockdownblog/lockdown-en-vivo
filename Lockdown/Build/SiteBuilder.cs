@@ -13,7 +13,12 @@
 
         public void CleanFolder(string folder)
         {
+            if (this.fileSystem.Directory.Exists(folder))
+            {
+                this.fileSystem.Directory.Delete(folder, recursive: true);
+            }
 
+            this.fileSystem.Directory.CreateDirectory(folder);
         }
 
         public void Build(string inputPath, string outputPath)
