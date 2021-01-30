@@ -4,6 +4,7 @@ namespace Lockdown
     using Lockdown.Commands;
     using McMaster.Extensions.CommandLineUtils;
     using Microsoft.Extensions.DependencyInjection;
+    using System.IO.Abstractions;
 
     [Command("lockdown")]
     [VersionOptionFromMember("--version", MemberName = nameof(LockdownVersion))]
@@ -15,6 +16,7 @@ namespace Lockdown
         public static int Main(string[] args)
         {
             ServiceProvider services = new ServiceCollection()
+                .AddSingleton<IFileSystem, FileSystem>()
                 .AddSingleton<ISiteBuilder, SiteBuilder>()
                 .AddSingleton<IConsole>(PhysicalConsole.Singleton)
                 .BuildServiceProvider();
