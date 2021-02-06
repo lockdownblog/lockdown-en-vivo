@@ -101,5 +101,29 @@ namespace Lockdown.Test
             fakeFileSystem.Directory.EnumerateFiles(output).Any().ShouldBeFalse();
             fakeFileSystem.Directory.EnumerateDirectories(output).Any().ShouldBeFalse();
         }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(10)]
+        [InlineData(10000)]
+        public void TestGetPostsWithSinglePost(int files)
+        {
+            var postsPath = this.fakeFileSystem.Path.Combine(inputPath, "posts");
+            this.fakeFileSystem.Directory.CreateDirectory(postsPath);
+            var fileContents = new List<string>();
+            for (var i = 0; i < files; i++)
+            {
+                var postPath = this.fakeFileSystem.Path.Combine(postsPath, $"file_{i}.txt");
+                var content = "# Hola Mundo!\n\n**Prueba {i}**";
+                this.fakeFileSystem.File.WriteAllText(postPath, content);
+                fileContents.Add(content);
+            }
+            var siteBuilder = new SiteBuilder(this.fakeFileSystem);
+
+            var posts = siteBuilder.GetPosts(inputPath);
+
+            posts.OrderBy(content => content).ShouldBe(fileContents);
+        }
     }
 }

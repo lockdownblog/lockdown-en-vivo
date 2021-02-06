@@ -1,5 +1,7 @@
 ﻿namespace Lockdown.Build
 {
+    using System.Collections.Generic;
+    using System.IO;
     using System.IO.Abstractions;
 
     public class SiteBuilder : ISiteBuilder
@@ -47,6 +49,20 @@
         {
             this.CleanFolder(outputPath);
             this.CopyFiles(inputPath, outputPath);
+
+
+        }
+
+        public virtual IEnumerable<string> GetPosts(string inputPath)
+        {
+            var inputPostsPath = this.fileSystem.Path.Combine(inputPath, "posts");
+            if (this.fileSystem.Directory.Exists(inputPostsPath))
+            {
+                foreach (var file in this.fileSystem.Directory.EnumerateFiles(inputPostsPath, "*.*", SearchOption.AllDirectories))
+                {
+                    yield return this.fileSystem.File.ReadAllText(file);
+                }
+            }
         }
     }
 }
