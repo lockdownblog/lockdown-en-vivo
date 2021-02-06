@@ -61,6 +61,9 @@ namespace Lockdown.Test
             var mockSiteBuilder = new Mock<SiteBuilder>(MockBehavior.Strict, this.fakeFileSystem);
             mockSiteBuilder.Setup(sb => sb.CleanFolder(output));
             mockSiteBuilder.Setup(sb => sb.CopyFiles(inputPath, output));
+            mockSiteBuilder.Setup(sb => sb.GetPosts(inputPath)).Returns(new string[0]);
+            mockSiteBuilder.Setup(sb => sb.SplitPost(It.IsAny<string>())).Returns(Tuple.Create("",""));
+            mockSiteBuilder.Setup(sb => sb.ConvertMetadata(It.IsAny<string>())).Returns(new RawPostMetadata());
             SiteBuilder siteBuilder = mockSiteBuilder.Object;
 
             // Act
