@@ -1,8 +1,8 @@
 ﻿---
-title: First post
+title: Ingeniería de software
 date: 2021-02-06
 ---
 
-<i>Hello world</i>!
-
-This is my <b>first post</b>!
+<i>¡Gracias!</i>!
+<br />
+Eso es todo <b>Amig@s</b>!

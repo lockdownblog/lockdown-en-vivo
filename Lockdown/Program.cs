@@ -9,6 +9,7 @@ namespace Lockdown
     [Command("lockdown")]
     [VersionOptionFromMember("--version", MemberName = nameof(LockdownVersion))]
     [Subcommand(typeof(BuildCommand))]
+    [Subcommand(typeof(RunCommand))]
     public class Program
     {
         public string LockdownVersion { get; } = "0.0.3";
