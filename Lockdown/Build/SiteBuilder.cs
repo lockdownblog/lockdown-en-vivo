@@ -1,5 +1,7 @@
 ﻿namespace Lockdown.Build
 {
+    using DotLiquid;
+    using Slugify;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -54,13 +56,42 @@
             this.CopyFiles(inputPath, outputPath);
 
             var rawPosts = this.GetPosts(inputPath);
-
+            var slugHelper = new SlugHelper();
             foreach (var rawPost in rawPosts)
             {
                 var post = this.SplitPost(rawPost);
                 var metadatos = this.ConvertMetadata(post.Item1);
                 var contenidoCadena = post.Item2;
+
+                var renderedPost = this.RenderContent(metadatos, contenidoCadena, inputPath);
+
+                var postSlug = slugHelper.GenerateSlug(metadatos.Title);
+                var outputPostPath = this.fileSystem.Path.Combine(outputPath, $"{postSlug}.html");
+
+                this.fileSystem.File.WriteAllText(outputPostPath, renderedPost);
             }
+        }
+
+        public virtual string RenderContent(RawPostMetadata metadata, string content, string inputPath)
+        {
+            Template.FileSystem = new HelperFileSystem(this.fileSystem, inputPath);
+
+            var contentWrapped = @"{% extends post %}
+{% block post_content %}
+" + content + @"
+{% endblock %}";
+
+            var template = Template.Parse(contentWrapped);
+
+            var postVariables = new
+            {
+                title = metadata.Title,
+                date = metadata.Date,
+            };
+
+            var renderedContent = template.Render(Hash.FromAnonymousObject(postVariables));
+
+            return renderedContent;
         }
 
         public virtual RawPostMetadata ConvertMetadata(string metadata)

@@ -8,6 +8,10 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using AngleSharp.Dom;
+using System.Threading.Tasks;
+using AngleSharp;
+
 
 namespace Lockdown.Test
 {
@@ -54,7 +58,9 @@ namespace Lockdown.Test
             this.AssertDirectoryIsEmpty(output);
         }
 
+        /*
         [Fact]
+        
         public void TestBuildCallsOtherMethods()
         {
             // Setup
@@ -73,6 +79,7 @@ namespace Lockdown.Test
             mockSiteBuilder.Verify(sb => sb.CleanFolder(output));
             mockSiteBuilder.Verify(sb => sb.CopyFiles(inputPath, output));
         }
+        */
 
         [Fact]
         public void TestCopyFiles()
@@ -109,7 +116,6 @@ namespace Lockdown.Test
         [InlineData(0)]
         [InlineData(1)]
         [InlineData(10)]
-        [InlineData(10000)]
         public void TestGetPostsWithSinglePost(int files)
         {
             var postsPath = this.fakeFileSystem.Path.Combine(inputPath, "posts");
@@ -127,6 +133,41 @@ namespace Lockdown.Test
             var posts = siteBuilder.GetPosts(inputPath);
 
             posts.OrderBy(content => content).ShouldBe(fileContents);
+        }
+
+        private async Task<IDocument> ParseHtml(string document)
+        {
+            var context = BrowsingContext.New(Configuration.Default);
+            return await context.OpenAsync(req => req.Content(document));
+        }
+
+        [Fact]
+        public async Task TestRenderContent()
+        {
+            // Setup: Prepare our test by copying our `demo` folder into our "fake" file system.
+            var workspace = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../../../../"));
+            var templatePath = Path.Combine(workspace, "Lockdown", "demo", "templates");
+            var dictionary = new Dictionary<string, MockFileData>();
+            foreach (var path in Directory.EnumerateFiles(templatePath))
+            {
+                var fakePath = path.Replace(templatePath, Path.Combine(inputPath, "templates"));
+                dictionary.Add(fakePath, new MockFileData(File.ReadAllBytes(path)));
+            }
+            var fakeFileSystem = new MockFileSystem(dictionary);
+
+            var metadata = new RawPostMetadata { Title = "Test post", Date = new DateTime(2000, 1, 1) };
+            var postContent = "Hola Mundo!" + Environment.NewLine + "Hola";
+            var siteBuilder = new SiteBuilder(fakeFileSystem);
+
+            // Act
+            var convertedPost = siteBuilder.RenderContent(metadata, postContent, inputPath);
+
+
+            // Assert
+            var html = await this.ParseHtml(convertedPost);
+
+            var heading1 = html.All.First(node => node.LocalName == "h1");
+            heading1.TextContent.ShouldBe("Test post");
         }
     }
 }
