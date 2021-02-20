@@ -7,6 +7,7 @@
     using System.Linq;
     using System.Text;
     using DotLiquid;
+    using Lockdown.Build.Markdown;
     using Lockdown.Build.Utils;
     using Lockdown.BuildEntities;
     using Slugify;
@@ -16,11 +17,16 @@
     {
         private readonly IFileSystem fileSystem;
         private readonly IYamlParser yamlParser;
+        private readonly IMarkdownRenderer markdownRenderer;
 
-        public SiteBuilder(IFileSystem fileSystem, IYamlParser yamlParser)
+        public SiteBuilder(
+            IFileSystem fileSystem,
+            IYamlParser yamlParser,
+            IMarkdownRenderer markdownRenderer)
         {
             this.fileSystem = fileSystem;
             this.yamlParser = yamlParser;
+            this.markdownRenderer = markdownRenderer;
         }
 
         public virtual void CleanFolder(string folder)
@@ -60,12 +66,15 @@
         {
             Template.FileSystem = new HelperFileSystem(this.fileSystem, inputPath);
 
-            var contentWrapped = @"{% extends post %}
-{% block post_content %}
-" + content + @"
-{% endblock %}";
+            var contentWrapped = new string[]
+            {
+                "{% extends post %}",
+                "{% block post_content %}",
+                this.markdownRenderer.RenderMarkdown(content),
+                "{% endblock %}",
+            };
 
-            var template = Template.Parse(contentWrapped);
+            var template = Template.Parse(string.Join('\n', contentWrapped));
 
             var postVariables = new
             {

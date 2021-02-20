@@ -2,6 +2,7 @@
 {
     using System.IO.Abstractions;
     using Lockdown.Build;
+    using Lockdown.Build.Markdown;
     using Lockdown.Build.Utils;
     using Lockdown.Commands;
     using McMaster.Extensions.CommandLineUtils;
@@ -18,6 +19,7 @@
         public static int Main(string[] args)
         {
             ServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMarkdownRenderer, MarkdownRenderer>()
                 .AddSingleton<IYamlParser, YamlParser>()
                 .AddSingleton<IFileSystem, FileSystem>()
                 .AddSingleton<ISiteBuilder, SiteBuilder>()
