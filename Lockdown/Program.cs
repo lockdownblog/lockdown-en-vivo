@@ -1,10 +1,10 @@
 namespace Lockdown
 {
+    using System.IO.Abstractions;
     using Lockdown.Build;
     using Lockdown.Commands;
     using McMaster.Extensions.CommandLineUtils;
     using Microsoft.Extensions.DependencyInjection;
-    using System.IO.Abstractions;
 
     [Command("lockdown")]
     [VersionOptionFromMember("--version", MemberName = nameof(LockdownVersion))]
