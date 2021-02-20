@@ -7,15 +7,20 @@
     using System.Linq;
     using System.Text;
     using DotLiquid;
+    using Lockdown.Build.Utils;
+    using Lockdown.BuildEntities;
     using Slugify;
+    using Raw = Lockdown.Build.RawEntities;
 
     public class SiteBuilder : ISiteBuilder
     {
         private readonly IFileSystem fileSystem;
+        private readonly IYamlParser yamlParser;
 
-        public SiteBuilder(IFileSystem fileSystem)
+        public SiteBuilder(IFileSystem fileSystem, IYamlParser yamlParser)
         {
             this.fileSystem = fileSystem;
+            this.yamlParser = yamlParser;
         }
 
         public virtual void CleanFolder(string folder)
@@ -30,8 +35,9 @@
 
         public void Build(string inputPath, string outputPath)
         {
+            var staticPath = this.fileSystem.Path.Combine(inputPath, "static");
             this.CleanFolder(outputPath);
-            this.CopyFiles(inputPath, outputPath);
+            this.CopyFiles(staticPath, outputPath);
 
             var rawPosts = this.GetPosts(inputPath);
             var slugHelper = new SlugHelper();
@@ -50,7 +56,7 @@
             }
         }
 
-        public virtual string RenderContent(RawPostMetadata metadata, string content, string inputPath)
+        public virtual string RenderContent(PostMetadata metadata, string content, string inputPath)
         {
             Template.FileSystem = new HelperFileSystem(this.fileSystem, inputPath);
 
@@ -63,8 +69,7 @@
 
             var postVariables = new
             {
-                title = metadata.Title,
-                date = metadata.Date,
+                post = metadata,
             };
 
             var renderedContent = template.Render(Hash.FromAnonymousObject(postVariables));
@@ -72,20 +77,14 @@
             return renderedContent;
         }
 
-        public virtual RawPostMetadata ConvertMetadata(string metadata)
+        public virtual PostMetadata ConvertMetadata(string metadata)
         {
-            var metadataEntries = metadata
-                .Split(Environment.NewLine)
-                .Where(line => !string.IsNullOrEmpty(line))
-                .Select(line => line.Split(':', 2))
-                .Select(parts => KeyValuePair.Create(parts[0].Trim().ToLower(), parts[1].Trim()));
+            var rawMetadata = this.yamlParser.ParseExtras<Raw.PostMetadata>(metadata);
 
-            var dict = new Dictionary<string, string>(metadataEntries);
-
-            return new RawPostMetadata
+            return new PostMetadata
             {
-                Title = dict["title"],
-                Date = DateTime.Parse(dict["date"]),
+                Title = rawMetadata.Title,
+                Date = rawMetadata.Date,
             };
         }
 
@@ -118,7 +117,7 @@
 
         public virtual IEnumerable<string> GetPosts(string inputPath)
         {
-            var inputPostsPath = this.fileSystem.Path.Combine(inputPath, "posts");
+            var inputPostsPath = this.fileSystem.Path.Combine(inputPath, "content", "posts");
             if (this.fileSystem.Directory.Exists(inputPostsPath))
             {
                 foreach (var file in this.fileSystem.Directory.EnumerateFiles(inputPostsPath, "*.*", SearchOption.AllDirectories))

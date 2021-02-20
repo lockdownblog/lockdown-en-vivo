@@ -1,8 +1,6 @@
 {% extends 'base' %}
 {% block content %}
-<h1 class="post-title">{{ title }}</h1>
-
-
+<h1 class="post-title">{{ post.title }}</h1>
 <div class="post-tags">
     <nav class="nav tags">
 <ul class="tags">{% for tag in post.tags %}

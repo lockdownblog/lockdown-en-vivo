@@ -40,8 +40,14 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="System.IO.Abstractions" Version="13.2.9" />
+    <PackageReference Include="YamlDotNet" Version="9.1.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Build\Utils\" />
+    <Folder Include="Build\RawEntities\" />
+    <Folder Include="Build\Entities\" />
+  </ItemGroup>
   <PropertyGroup>
     <CodeAnalysisRuleSet>../style.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
