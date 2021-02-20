@@ -116,7 +116,7 @@
 
         public virtual IEnumerable<string> GetPosts(string inputPath)
         {
-            var inputPostsPath = this.fileSystem.Path.Combine(inputPath, "posts");
+            var inputPostsPath = this.fileSystem.Path.Combine(inputPath, "content", "posts");
             if (this.fileSystem.Directory.Exists(inputPostsPath))
             {
                 foreach (var file in this.fileSystem.Directory.EnumerateFiles(inputPostsPath, "*.*", SearchOption.AllDirectories))

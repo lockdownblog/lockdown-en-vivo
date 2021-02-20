@@ -123,7 +123,7 @@ namespace Lockdown.Test
         [InlineData(10)]
         public void TestGetPostsWithSinglePost(int files)
         {
-            var postsPath = this.fakeFileSystem.Path.Combine(inputPath, "posts");
+            var postsPath = this.fakeFileSystem.Path.Combine(inputPath, "content", "posts");
             this.fakeFileSystem.Directory.CreateDirectory(postsPath);
             var fileContents = new List<string>();
             for (var i = 0; i < files; i++)

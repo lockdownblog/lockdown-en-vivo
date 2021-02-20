@@ -1,12 +1,12 @@
 ﻿namespace Lockdown.Commands
 {
+    using System.Collections.Generic;
+    using System.IO.Abstractions;
     using Lockdown.Build;
     using Lockdown.Run;
     using McMaster.Extensions.CommandLineUtils;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
-    using System.Collections.Generic;
-    using System.IO.Abstractions;
 
     public class RunCommand
     {
