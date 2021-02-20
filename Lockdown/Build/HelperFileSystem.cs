@@ -1,7 +1,7 @@
 ﻿namespace Lockdown.Build
 {
-    using DotLiquid;
     using System.IO.Abstractions;
+    using DotLiquid;
 
     public class HelperFileSystem : DotLiquid.FileSystems.IFileSystem
     {
