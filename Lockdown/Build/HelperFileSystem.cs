@@ -16,7 +16,8 @@
 
         public string ReadTemplateFile(Context context, string templateName)
         {
-            var templatePath = this.fileSystem.Path.Combine(this.rootPath, "templates", $"_{templateName}.liquid");
+            var cleanTemplateName = templateName.Trim(' ', '\'', '"');
+            var templatePath = this.fileSystem.Path.Combine(this.rootPath, "templates", $"_{cleanTemplateName}.liquid");
             return this.fileSystem.File.ReadAllText(templatePath);
         }
     }
