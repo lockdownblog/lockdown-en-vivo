@@ -35,8 +35,9 @@
 
         public void Build(string inputPath, string outputPath)
         {
+            var staticPath = this.fileSystem.Path.Combine(inputPath, "static");
             this.CleanFolder(outputPath);
-            this.CopyFiles(inputPath, outputPath);
+            this.CopyFiles(staticPath, outputPath);
 
             var rawPosts = this.GetPosts(inputPath);
             var slugHelper = new SlugHelper();
