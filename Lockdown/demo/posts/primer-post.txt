@@ -1,8 +1,0 @@
-﻿---
-title: First post
-date: 2021-02-06
----
-
-<i>Hello world</i>!
-
-This is my <b>first post</b>!

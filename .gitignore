@@ -396,3 +396,4 @@ MigrationBackup/
 # End of https://www.toptal.com/developers/gitignore/api/windows,visualstudio,visualstudiocode
 
 **/launchSettings.json
+.DS_store

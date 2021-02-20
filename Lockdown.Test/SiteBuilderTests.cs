@@ -146,7 +146,7 @@ namespace Lockdown.Test
         {
             // Setup: Prepare our test by copying our `demo` folder into our "fake" file system.
             var workspace = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../../../../"));
-            var templatePath = Path.Combine(workspace, "Lockdown", "demo", "templates");
+            var templatePath = Path.Combine(workspace, "Lockdown", "BlankTemplate", "templates");
             var dictionary = new Dictionary<string, MockFileData>();
             foreach (var path in Directory.EnumerateFiles(templatePath))
             {
