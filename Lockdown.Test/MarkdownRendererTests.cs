@@ -18,7 +18,7 @@ namespace Lockdown.Test
         }
 
         [Fact]
-        public void TestParseSimple()
+        public void TestRender()
         {
             var md = @"# Hello world";
 
