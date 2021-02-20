@@ -7,9 +7,9 @@
     using System.Linq;
     using System.Text;
     using DotLiquid;
+    using Lockdown.Build.Entities;
     using Lockdown.Build.Markdown;
     using Lockdown.Build.Utils;
-    using Lockdown.BuildEntities;
     using Slugify;
     using Raw = Lockdown.Build.RawEntities;
 
@@ -19,6 +19,8 @@
         private readonly IYamlParser yamlParser;
         private readonly IMarkdownRenderer markdownRenderer;
 
+        private SiteConfiguration siteConfiguration;
+
         public SiteBuilder(
             IFileSystem fileSystem,
             IYamlParser yamlParser,
@@ -27,6 +29,7 @@
             this.fileSystem = fileSystem;
             this.yamlParser = yamlParser;
             this.markdownRenderer = markdownRenderer;
+            this.siteConfiguration = null;
         }
 
         public virtual void CleanFolder(string folder)
@@ -44,6 +47,8 @@
             var staticPath = this.fileSystem.Path.Combine(inputPath, "static");
             this.CleanFolder(outputPath);
             this.CopyFiles(staticPath, outputPath);
+
+            this.siteConfiguration = this.ReadSiteConfiguration(inputPath);
 
             var rawPosts = this.GetPosts(inputPath);
             var slugHelper = new SlugHelper();
@@ -79,6 +84,7 @@
             var postVariables = new
             {
                 post = metadata,
+                site = this.siteConfiguration,
             };
 
             var renderedContent = template.Render(Hash.FromAnonymousObject(postVariables));
@@ -142,6 +148,25 @@
             var target = this.fileSystem.DirectoryInfo.FromDirectoryName(output);
 
             this.CopyFiles(source, target);
+        }
+
+        private SiteConfiguration ReadSiteConfiguration(string inputPath)
+        {
+            var source = this.fileSystem.Path.Combine(inputPath, "site.yml");
+            var text = this.fileSystem.File.ReadAllText(source);
+
+            var rawMetadata = this.yamlParser.Parse<Raw.SiteConfiguration>(text);
+
+            return new SiteConfiguration
+            {
+                Title = rawMetadata.Title,
+                Subtitle = rawMetadata.Subtitle,
+                Description = rawMetadata.Description,
+                SiteUrl = rawMetadata.SiteUrl,
+                DefaultAuthor = rawMetadata.DefaultAuthor,
+
+                Social = rawMetadata.Social.Select(lk => new SocialLink { Link = lk.Link, Name = lk.Name }).ToList(),
+            };
         }
 
         private void CopyFiles(IDirectoryInfo source, IDirectoryInfo target)

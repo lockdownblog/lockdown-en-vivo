@@ -13,7 +13,7 @@ using AngleSharp.Dom;
 using System.Threading.Tasks;
 using AngleSharp;
 using Lockdown.Build.Utils;
-using Lockdown.BuildEntities;
+using Lockdown.Build.Entities;
 using Lockdown.Build.Markdown;
 
 namespace Lockdown.Test

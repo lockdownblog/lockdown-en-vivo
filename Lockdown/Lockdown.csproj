@@ -46,8 +46,6 @@
 
   <ItemGroup>
     <Folder Include="Build\Utils\" />
-    <Folder Include="Build\RawEntities\" />
-    <Folder Include="Build\Entities\" />
   </ItemGroup>
   <PropertyGroup>
     <CodeAnalysisRuleSet>../style.ruleset</CodeAnalysisRuleSet>
