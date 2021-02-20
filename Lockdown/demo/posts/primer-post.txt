@@ -1,8 +1,0 @@
-﻿---
-title: Ingeniería de software
-date: 2021-02-06
----
-
-<i>¡Gracias!</i>!
-<br />
-Eso es todo <b>Amig@s</b>!

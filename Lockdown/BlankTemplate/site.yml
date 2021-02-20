@@ -1,0 +1,6 @@
+title: "Your new blog!"
+subtitle: Edit this subtitle in the site.yml file
+default-author: Awesome You
+social:
+  - name: GitHub
+    link: https://github.com/lockdown-blog/lockdown

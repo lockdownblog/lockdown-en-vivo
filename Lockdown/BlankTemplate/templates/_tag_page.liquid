@@ -1,0 +1,14 @@
+﻿{% extends 'base' %}
+
+{% block content %}
+    <h1>Entries tagged - "{{ tag_name }}"</h1>
+    {% for post in articles %}
+        <section class="list-item">
+            <h1 class="title"><a href="{{ post.url }}">{{ post.title }}</a></h1>
+            <time>{{ post.date_time | date:"MMMM dd, yyyy" }}</time>
+            <br>
+            <div class="description">{{ post.summary }}</div>
+            <a href="{{ post.url }}">Read more ⟶</a>
+        </section>
+    {% endfor %}
+{% endblock %}

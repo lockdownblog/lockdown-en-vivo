@@ -1,0 +1,12 @@
+﻿{% extends 'base' %}
+
+{% block content %}
+<h1 class="page-title">All tags</h1>
+<div class="tag-cloud">
+    <ul class="tags">
+        {% for tag in tags %}
+        <li><a href="{{ tag.url }}">{{ tag.text }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
