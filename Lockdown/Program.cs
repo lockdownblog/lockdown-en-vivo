@@ -1,7 +1,8 @@
-namespace Lockdown
+﻿namespace Lockdown
 {
     using System.IO.Abstractions;
     using Lockdown.Build;
+    using Lockdown.Build.Utils;
     using Lockdown.Commands;
     using McMaster.Extensions.CommandLineUtils;
     using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ namespace Lockdown
         public static int Main(string[] args)
         {
             ServiceProvider services = new ServiceCollection()
+                .AddSingleton<IYamlParser, YamlParser>()
                 .AddSingleton<IFileSystem, FileSystem>()
                 .AddSingleton<ISiteBuilder, SiteBuilder>()
                 .AddSingleton<IConsole>(PhysicalConsole.Singleton)

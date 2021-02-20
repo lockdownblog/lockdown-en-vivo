@@ -1,4 +1,5 @@
 ﻿using Lockdown.Build;
+using Raw = Lockdown.Build.RawEntities;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using Xunit;
@@ -11,7 +12,8 @@ using System.IO;
 using AngleSharp.Dom;
 using System.Threading.Tasks;
 using AngleSharp;
-
+using Lockdown.Build.Utils;
+using Lockdown.BuildEntities;
 
 namespace Lockdown.Test
 {
@@ -19,6 +21,7 @@ namespace Lockdown.Test
     {
 
         private readonly IFileSystem fakeFileSystem;
+        private readonly Mock<IYamlParser> moqYamlParser;
         const string inputPath = "./input";
         const string output = "./output";
 
@@ -26,6 +29,8 @@ namespace Lockdown.Test
         public SiteBuilderTests()
         {
             fakeFileSystem = new MockFileSystem();
+            moqYamlParser = new Mock<IYamlParser>();
+
         }
 
         [Fact]
@@ -36,7 +41,7 @@ namespace Lockdown.Test
             fakeFileSystem.Directory.CreateDirectory(output);
             fakeFileSystem.File.WriteAllText(fakeFilePath, "hola mundo");
 
-            var siteBuilder = new SiteBuilder(fakeFileSystem);
+            var siteBuilder = new SiteBuilder(fakeFileSystem, moqYamlParser.Object);
 
             // Act
             siteBuilder.CleanFolder(output);
@@ -49,7 +54,7 @@ namespace Lockdown.Test
         public void TestOutputFolderDoesNotExist()
         {
             // Setup
-            var siteBuilder = new SiteBuilder(fakeFileSystem);
+            var siteBuilder = new SiteBuilder(fakeFileSystem, moqYamlParser.Object);
 
             // Act
             siteBuilder.CleanFolder(output);
@@ -96,7 +101,7 @@ namespace Lockdown.Test
 
             var fakeFileSystem = new MockFileSystem(contents);
             fakeFileSystem.Directory.CreateDirectory(output);
-            var siteBuilder = new SiteBuilder(fakeFileSystem);
+            var siteBuilder = new SiteBuilder(fakeFileSystem, moqYamlParser.Object);
 
             // Act
             siteBuilder.CopyFiles(inputPath, output);
@@ -128,7 +133,7 @@ namespace Lockdown.Test
                 this.fakeFileSystem.File.WriteAllText(postPath, content);
                 fileContents.Add(content);
             }
-            var siteBuilder = new SiteBuilder(this.fakeFileSystem);
+            var siteBuilder = new SiteBuilder(this.fakeFileSystem, moqYamlParser.Object);
 
             var posts = siteBuilder.GetPosts(inputPath);
 
@@ -155,9 +160,9 @@ namespace Lockdown.Test
             }
             var fakeFileSystem = new MockFileSystem(dictionary);
 
-            var metadata = new RawPostMetadata { Title = "Test post", Date = new DateTime(2000, 1, 1) };
+            var metadata = new PostMetadata { Title = "Test post", Date = new DateTime(2000, 1, 1) };
             var postContent = "Hola Mundo!" + Environment.NewLine + "Hola";
-            var siteBuilder = new SiteBuilder(fakeFileSystem);
+            var siteBuilder = new SiteBuilder(fakeFileSystem, moqYamlParser.Object);
 
             // Act
             var convertedPost = siteBuilder.RenderContent(metadata, postContent, inputPath);

@@ -1,8 +1,9 @@
-﻿namespace Lockdown.Build
+﻿namespace Lockdown.BuildEntities
 {
     using System;
+    using DotLiquid;
 
-    public class RawPostMetadata
+    public class PostMetadata : Drop
     {
         public string Title { get; set; }
 
