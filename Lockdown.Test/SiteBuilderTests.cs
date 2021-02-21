@@ -130,6 +130,20 @@ namespace Lockdown.Test
             fakeFileSystem.Directory.EnumerateFiles(output, "*.*", SearchOption.AllDirectories).Count().ShouldBe(2);
         }
 
+        [Fact]
+        public void TestWriteFile()
+        {
+            var siteBuilder = new SiteBuilder(fakeFileSystem, moqYamlParser.Object, moqMarkdownRenderer.Object);
+            var destination = fakeFileSystem.Path.Combine(inputPath, "some", "folder", "file.txt");
+            var content = "Hello world!";
+
+            // Act
+            siteBuilder.WriteFile(destination, content);
+
+            // Assert
+            fakeFileSystem.File.ReadAllText(destination).ShouldBe(content);
+        }
+
         private void AssertDirectoryIsEmpty(string output)
         {
             fakeFileSystem.Directory.Exists(output).ShouldBeTrue();
