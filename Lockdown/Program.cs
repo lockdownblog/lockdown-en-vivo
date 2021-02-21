@@ -19,6 +19,7 @@
         public static int Main(string[] args)
         {
             ServiceProvider services = new ServiceCollection()
+                .AddSingleton<ILiquidRenderer, DotLiquidRenderer>()
                 .AddSingleton<IMarkdownRenderer, MarkdownRenderer>()
                 .AddSingleton<IYamlParser, YamlParser>()
                 .AddSingleton<IFileSystem, FileSystem>()
