@@ -20,6 +20,7 @@
         {
             ServiceProvider services = new ServiceCollection()
                 .AddSingleton<ILiquidRenderer, DotLiquidRenderer>()
+                .AddSingleton<ISlugifier, Slugifier>()
                 .AddSingleton<IMarkdownRenderer, MarkdownRenderer>()
                 .AddSingleton<IYamlParser, YamlParser>()
                 .AddSingleton<IFileSystem, FileSystem>()

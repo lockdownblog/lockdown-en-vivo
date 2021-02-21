@@ -25,5 +25,8 @@
 
         [YamlMember(Alias = "social")]
         public List<SocialLink> Social { get; set; }
+
+        [YamlMember(Alias = "post-routes")]
+        public List<string> PostRoutes { get; set; }
     }
 }
