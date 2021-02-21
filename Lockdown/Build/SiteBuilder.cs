@@ -6,7 +6,6 @@
     using System.IO.Abstractions;
     using System.Linq;
     using System.Text;
-    using DotLiquid;
     using Lockdown.Build.Entities;
     using Lockdown.Build.Markdown;
     using Lockdown.Build.Utils;
@@ -18,17 +17,19 @@
         private readonly IFileSystem fileSystem;
         private readonly IYamlParser yamlParser;
         private readonly IMarkdownRenderer markdownRenderer;
-
+        private readonly ILiquidRenderer liquidRenderer;
         private SiteConfiguration siteConfiguration;
 
         public SiteBuilder(
             IFileSystem fileSystem,
             IYamlParser yamlParser,
-            IMarkdownRenderer markdownRenderer)
+            IMarkdownRenderer markdownRenderer,
+            ILiquidRenderer liquidRenderer)
         {
             this.fileSystem = fileSystem;
             this.yamlParser = yamlParser;
             this.markdownRenderer = markdownRenderer;
+            this.liquidRenderer = liquidRenderer;
             this.siteConfiguration = null;
         }
 
@@ -47,6 +48,7 @@
             var staticPath = this.fileSystem.Path.Combine(inputPath, "static");
             this.CleanFolder(outputPath);
             this.CopyFiles(staticPath, outputPath);
+            this.liquidRenderer.SetRoot(inputPath);
 
             this.siteConfiguration = this.ReadSiteConfiguration(inputPath);
 
@@ -69,8 +71,6 @@
 
         public virtual string RenderContent(PostMetadata metadata, string content, string inputPath)
         {
-            Template.FileSystem = new HelperFileSystem(this.fileSystem, inputPath);
-
             var contentWrapped = new string[]
             {
                 "{% extends post %}",
@@ -79,15 +79,13 @@
                 "{% endblock %}",
             };
 
-            var template = Template.Parse(string.Join('\n', contentWrapped));
-
             var postVariables = new
             {
                 post = metadata,
                 site = this.siteConfiguration,
             };
 
-            var renderedContent = template.Render(Hash.FromAnonymousObject(postVariables));
+            var renderedContent = this.liquidRenderer.Render(string.Join('\n', contentWrapped), postVariables);
 
             return renderedContent;
         }
