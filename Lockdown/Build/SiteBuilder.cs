@@ -9,7 +9,6 @@
     using Lockdown.Build.Entities;
     using Lockdown.Build.Markdown;
     using Lockdown.Build.Utils;
-    using Slugify;
     using Raw = Lockdown.Build.RawEntities;
 
     public class SiteBuilder : ISiteBuilder
@@ -18,19 +17,21 @@
         private readonly IYamlParser yamlParser;
         private readonly IMarkdownRenderer markdownRenderer;
         private readonly ILiquidRenderer liquidRenderer;
-
+        private readonly ISlugifier slugifier;
         private SiteConfiguration siteConfiguration;
 
         public SiteBuilder(
             IFileSystem fileSystem,
             IYamlParser yamlParser,
             IMarkdownRenderer markdownRenderer,
-            ILiquidRenderer liquidRenderer)
+            ILiquidRenderer liquidRenderer,
+            ISlugifier slugifier)
         {
             this.fileSystem = fileSystem;
             this.yamlParser = yamlParser;
             this.markdownRenderer = markdownRenderer;
             this.liquidRenderer = liquidRenderer;
+            this.slugifier = slugifier;
             this.siteConfiguration = null;
         }
 
@@ -55,27 +56,25 @@
             this.siteConfiguration = this.ConvertSiteConfiguration(rawSiteConfiguration);
 
             var rawPosts = this.GetPosts(inputPath);
-            var slugHelper = new SlugHelper();
 
             foreach (var rawPost in rawPosts)
             {
                 var post = this.SplitPost(rawPost);
                 var metadatos = this.ConvertMetadata(post.Item1);
 
-                var postSlug = slugHelper.GenerateSlug(metadatos.Title);
                 var mainRoute = rawSiteConfiguration.PostRoutes.First();
-                mainRoute = mainRoute.Replace("{}", postSlug).TrimStart('/');
+
+                (string _, string canonicalPath) = this.GetPaths(mainRoute, metadatos);
+
                 metadatos.CanonicalUrl = mainRoute;
                 var postContent = post.Item2;
 
                 var renderedPost = this.RenderContent(metadatos, postContent, inputPath);
 
-                foreach (string pathTemplate in rawSiteConfiguration.PostRoutes.Skip(1))
+                foreach (string pathTemplate in rawSiteConfiguration.PostRoutes)
                 {
-                    var actualPath = pathTemplate.Replace("{}", postSlug).TrimStart('/');
-                    var outputPostPath = this.fileSystem.Path.Combine(outputPath, actualPath);
-
-                    this.WriteFile(outputPostPath, renderedPost);
+                    (string filePath, string _) = this.GetPaths(pathTemplate, metadatos);
+                    this.WriteFile(filePath, renderedPost);
                 }
             }
         }
@@ -168,6 +167,20 @@
             }
 
             this.fileSystem.File.WriteAllText(filePath, content);
+        }
+
+        public virtual (string filePath, string canonicalPath) GetPaths(string pathTemplate, PostMetadata metadata)
+        {
+            var postSlug = this.slugifier.Slugify(metadata.Title);
+            pathTemplate = pathTemplate.Replace("{}", postSlug).TrimStart('/');
+
+            var filePath = pathTemplate.EndsWith(".html") ?
+                pathTemplate : this.fileSystem.Path.Combine(pathTemplate, "index.html").Replace('\\', '/');
+
+            var canonicalPath = pathTemplate.EndsWith("/index.html") ?
+                pathTemplate.Substring(0, pathTemplate.Length - 13) : pathTemplate;
+
+            return (filePath, canonicalPath);
         }
 
         private Raw.SiteConfiguration ReadSiteConfiguration(string inputPath)

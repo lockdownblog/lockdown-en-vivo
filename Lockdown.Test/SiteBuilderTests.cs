@@ -22,6 +22,7 @@ namespace Lockdown.Test
     {
 
         private readonly IFileSystem fakeFileSystem;
+        private readonly ISlugifier slugifier;
         private readonly Mock<IYamlParser> moqYamlParser;
         private readonly Mock<IMarkdownRenderer> moqMarkdownRenderer;
         private readonly Mock<ILiquidRenderer> moqLiquidRenderer;
@@ -36,6 +37,7 @@ namespace Lockdown.Test
             moqYamlParser = new Mock<IYamlParser>();
             moqMarkdownRenderer = new Mock<IMarkdownRenderer>();
             moqLiquidRenderer = new Mock<ILiquidRenderer>();
+            slugifier = new Slugifier();
         }
 
         [Fact]
@@ -50,7 +52,8 @@ namespace Lockdown.Test
                 fakeFileSystem,
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object
+                moqLiquidRenderer.Object,
+                slugifier
             );
 
             // Act
@@ -68,7 +71,8 @@ namespace Lockdown.Test
                 fakeFileSystem,
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object
+                moqLiquidRenderer.Object,
+                slugifier
             );
 
             // Act
@@ -120,7 +124,8 @@ namespace Lockdown.Test
                 fakeFileSystem,
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object
+                moqLiquidRenderer.Object,
+                slugifier
             );
 
             // Act
@@ -133,7 +138,13 @@ namespace Lockdown.Test
         [Fact]
         public void TestWriteFile()
         {
-            var siteBuilder = new SiteBuilder(fakeFileSystem, moqYamlParser.Object, moqMarkdownRenderer.Object);
+            var siteBuilder = new SiteBuilder(
+                fakeFileSystem,
+                moqYamlParser.Object,
+                moqMarkdownRenderer.Object,
+                moqLiquidRenderer.Object,
+                slugifier
+            );
             var destination = fakeFileSystem.Path.Combine(inputPath, "some", "folder", "file.txt");
             var content = "Hello world!";
 
@@ -171,12 +182,35 @@ namespace Lockdown.Test
                 fakeFileSystem,
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object
+                moqLiquidRenderer.Object,
+                slugifier
             );
 
             var posts = siteBuilder.GetPosts(inputPath);
 
             posts.OrderBy(content => content).ShouldBe(fileContents);
+        }
+
+        [Theory]
+        [InlineData("/{}.html", "hello-world.html", "hello-world.html")]
+        [InlineData("{}.html", "hello-world.html", "hello-world.html")]
+        [InlineData("/{}", "hello-world/index.html", "hello-world")]
+        [InlineData("/post/{}", "post/hello-world/index.html", "post/hello-world")]
+        public void TestGetRoutes(string template, string fileExpected, string canonicalExpected)
+        {
+            var metadata = new PostMetadata { Title = "Hello World" };
+            var siteBuilder = new SiteBuilder(
+                fakeFileSystem,
+                moqYamlParser.Object,
+                moqMarkdownRenderer.Object,
+                moqLiquidRenderer.Object,
+                slugifier
+            );
+
+            var (filePath, canonicalPath) = siteBuilder.GetPaths(template, metadata);
+
+            filePath.ShouldBe(fileExpected);
+            canonicalPath.ShouldBe(canonicalExpected);
         }
 
         private async Task<IDocument> ParseHtml(string document)
@@ -207,7 +241,8 @@ namespace Lockdown.Test
             var siteBuilder = new SiteBuilder(fakeFileSystem,
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
-                dotLiquidRenderer
+                dotLiquidRenderer,
+                slugifier
             );
 
             // Act
