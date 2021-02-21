@@ -66,7 +66,7 @@
 
                 (string _, string canonicalPath) = this.GetPaths(mainRoute, metadatos);
 
-                metadatos.CanonicalUrl = mainRoute;
+                metadatos.CanonicalUrl = canonicalPath;
                 var postContent = post.Item2;
 
                 var renderedPost = this.RenderContent(metadatos, postContent, inputPath);
@@ -74,7 +74,7 @@
                 foreach (string pathTemplate in rawSiteConfiguration.PostRoutes)
                 {
                     (string filePath, string _) = this.GetPaths(pathTemplate, metadatos);
-                    this.WriteFile(filePath, renderedPost);
+                    this.WriteFile(this.fileSystem.Path.Combine(outputPath, filePath), renderedPost);
                 }
             }
         }
@@ -178,7 +178,7 @@
                 pathTemplate : this.fileSystem.Path.Combine(pathTemplate, "index.html").Replace('\\', '/');
 
             var canonicalPath = pathTemplate.EndsWith("/index.html") ?
-                pathTemplate.Substring(0, pathTemplate.Length - 13) : pathTemplate;
+                pathTemplate.Substring(0, pathTemplate.Length - 11) : pathTemplate;
 
             return (filePath, canonicalPath);
         }

@@ -196,6 +196,7 @@ namespace Lockdown.Test
         [InlineData("{}.html", "hello-world.html", "hello-world.html")]
         [InlineData("/{}", "hello-world/index.html", "hello-world")]
         [InlineData("/post/{}", "post/hello-world/index.html", "post/hello-world")]
+        [InlineData("/post/{}/index.html", "post/hello-world/index.html", "post/hello-world")]
         public void TestGetRoutes(string template, string fileExpected, string canonicalExpected)
         {
             var metadata = new PostMetadata { Title = "Hello World" };

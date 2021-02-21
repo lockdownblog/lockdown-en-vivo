@@ -1,4 +1,7 @@
 {% extends 'base' %}
+{% block content_head %}
+<link rel="canonical" href="{{ site.site_url }}/{{ post.canonical_url }}" />
+{% endblock %}
 {% block content %}
 <h1 class="post-title">{{ post.title }}</h1>
 <div class="post-tags">
