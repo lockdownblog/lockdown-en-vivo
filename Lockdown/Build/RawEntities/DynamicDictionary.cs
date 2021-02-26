@@ -16,8 +16,8 @@
             GetMemberBinder binder, out object result)
         {
             string outValue;
-            var trialResult = this.dictionary.TryGetValue(binder.Name, out outValue);
-            result = (object)outValue;
+            this.dictionary.TryGetValue(binder.Name, out outValue);
+            result = outValue;
 
             return true;
         }
