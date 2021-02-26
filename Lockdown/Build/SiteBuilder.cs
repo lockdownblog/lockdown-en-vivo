@@ -6,6 +6,7 @@
     using System.IO.Abstractions;
     using System.Linq;
     using System.Text;
+    using AutoMapper;
     using Lockdown.Build.Entities;
     using Lockdown.Build.Markdown;
     using Lockdown.Build.Utils;
@@ -18,6 +19,7 @@
         private readonly IMarkdownRenderer markdownRenderer;
         private readonly ILiquidRenderer liquidRenderer;
         private readonly ISlugifier slugifier;
+        private readonly IMapper mapper;
         private SiteConfiguration siteConfiguration;
 
         public SiteBuilder(
@@ -25,13 +27,15 @@
             IYamlParser yamlParser,
             IMarkdownRenderer markdownRenderer,
             ILiquidRenderer liquidRenderer,
-            ISlugifier slugifier)
+            ISlugifier slugifier,
+            IMapper mapper)
         {
             this.fileSystem = fileSystem;
             this.yamlParser = yamlParser;
             this.markdownRenderer = markdownRenderer;
             this.liquidRenderer = liquidRenderer;
             this.slugifier = slugifier;
+            this.mapper = mapper;
             this.siteConfiguration = null;
         }
 
@@ -53,7 +57,7 @@
             this.liquidRenderer.SetRoot(inputPath);
 
             var rawSiteConfiguration = this.ReadSiteConfiguration(inputPath);
-            this.siteConfiguration = this.ConvertSiteConfiguration(rawSiteConfiguration);
+            this.siteConfiguration = this.mapper.Map<SiteConfiguration>(rawSiteConfiguration);
 
             var rawPosts = this.GetPosts(inputPath);
 
@@ -103,12 +107,7 @@
         public virtual PostMetadata ConvertMetadata(string metadata)
         {
             var rawMetadata = this.yamlParser.ParseExtras<Raw.PostMetadata>(metadata);
-
-            return new PostMetadata
-            {
-                Title = rawMetadata.Title,
-                Date = rawMetadata.Date,
-            };
+            return this.mapper.Map<PostMetadata>(rawMetadata);
         }
 
         public virtual Tuple<string, string> SplitPost(string post)
@@ -194,19 +193,6 @@
             siteConf.PostRoutes = siteConf.PostRoutes ?? new List<string> { "post/{}.html" };
 
             return siteConf;
-        }
-
-        private SiteConfiguration ConvertSiteConfiguration(Raw.SiteConfiguration rawMetadata)
-        {
-            return new SiteConfiguration
-            {
-                Title = rawMetadata.Title,
-                Subtitle = rawMetadata.Subtitle,
-                Description = rawMetadata.Description,
-                SiteUrl = rawMetadata.SiteUrl,
-                DefaultAuthor = rawMetadata.DefaultAuthor,
-                Social = rawMetadata.Social.Select(lk => new SocialLink { Link = lk.Link, Name = lk.Name }).ToList(),
-            };
         }
 
         private void CopyFiles(IDirectoryInfo source, IDirectoryInfo target)

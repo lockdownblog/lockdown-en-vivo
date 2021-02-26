@@ -19,7 +19,6 @@ namespace Lockdown.Test
         [Fact]
         public void TestParseSimple()
         {
-            // Setup: Prepare our test by copying our `demo` folder into our "fake" file system.
             var yamlString = @"title: Russian hardbass
 date: 2021-02-20";
 
@@ -33,7 +32,6 @@ date: 2021-02-20";
         [Fact]
         public void TestParseSimpleNoExtras()
         {
-            // Setup: Prepare our test by copying our `demo` folder into our "fake" file system.
             var yamlString = @"title: Russian hardbass
 date: 2021-02-20
 this: is extra
@@ -51,7 +49,6 @@ tags:
         [Fact]
         public void TestParseExtras()
         {
-            // Setup: Prepare our test by copying our `demo` folder into our "fake" file system.
             var yamlString = @"title: Russian hardbass
 date: 2021-02-20
 extra: is extra info
