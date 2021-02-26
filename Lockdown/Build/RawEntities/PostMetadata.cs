@@ -9,6 +9,6 @@
         public string Title { get; set; }
 
         [YamlMember(Alias = "date")]
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
     }
 }

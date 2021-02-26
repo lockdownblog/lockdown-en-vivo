@@ -1,6 +1,7 @@
 ﻿namespace Lockdown
 {
     using System.IO.Abstractions;
+    using AutoMapper;
     using Lockdown.Build;
     using Lockdown.Build.Markdown;
     using Lockdown.Build.Utils;
@@ -19,6 +20,7 @@
         public static int Main(string[] args)
         {
             ServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMapper>(Build.Mapping.Mapper.GetMapper())
                 .AddSingleton<ILiquidRenderer, DotLiquidRenderer>()
                 .AddSingleton<ISlugifier, Slugifier>()
                 .AddSingleton<IMarkdownRenderer, MarkdownRenderer>()

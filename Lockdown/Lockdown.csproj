@@ -28,6 +28,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="10.1.1" />
     <PackageReference Include="DotLiquid" Version="2.0.366" />
     <PackageReference Include="Markdig" Version="0.23.0" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
@@ -42,6 +43,9 @@
     </PackageReference>
     <PackageReference Include="System.IO.Abstractions" Version="13.2.9" />
     <PackageReference Include="YamlDotNet" Version="9.1.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Build\Mapping\" />
   </ItemGroup>
   <PropertyGroup>
     <CodeAnalysisRuleSet>../style.ruleset</CodeAnalysisRuleSet>

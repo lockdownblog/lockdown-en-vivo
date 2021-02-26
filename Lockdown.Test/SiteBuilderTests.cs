@@ -15,6 +15,7 @@ using AngleSharp;
 using Lockdown.Build.Utils;
 using Lockdown.Build.Entities;
 using Lockdown.Build.Markdown;
+using AutoMapper;
 
 namespace Lockdown.Test
 {
@@ -23,6 +24,7 @@ namespace Lockdown.Test
 
         private readonly IFileSystem fakeFileSystem;
         private readonly ISlugifier slugifier;
+        private readonly IMapper mapper;
         private readonly Mock<IYamlParser> moqYamlParser;
         private readonly Mock<IMarkdownRenderer> moqMarkdownRenderer;
         private readonly Mock<ILiquidRenderer> moqLiquidRenderer;
@@ -38,6 +40,7 @@ namespace Lockdown.Test
             moqMarkdownRenderer = new Mock<IMarkdownRenderer>();
             moqLiquidRenderer = new Mock<ILiquidRenderer>();
             slugifier = new Slugifier();
+            mapper = Build.Mapping.Mapper.GetMapper();
         }
 
         [Fact]
@@ -53,7 +56,8 @@ namespace Lockdown.Test
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
                 moqLiquidRenderer.Object,
-                slugifier
+                slugifier,
+                mapper
             );
 
             // Act
@@ -72,7 +76,8 @@ namespace Lockdown.Test
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
                 moqLiquidRenderer.Object,
-                slugifier
+                slugifier,
+                mapper
             );
 
             // Act
@@ -125,7 +130,8 @@ namespace Lockdown.Test
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
                 moqLiquidRenderer.Object,
-                slugifier
+                slugifier,
+                mapper
             );
 
             // Act
@@ -143,7 +149,8 @@ namespace Lockdown.Test
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
                 moqLiquidRenderer.Object,
-                slugifier
+                slugifier,
+                mapper
             );
             var destination = fakeFileSystem.Path.Combine(inputPath, "some", "folder", "file.txt");
             var content = "Hello world!";
@@ -183,7 +190,8 @@ namespace Lockdown.Test
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
                 moqLiquidRenderer.Object,
-                slugifier
+                slugifier,
+                mapper
             );
 
             var posts = siteBuilder.GetPosts(inputPath);
@@ -205,7 +213,8 @@ namespace Lockdown.Test
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
                 moqLiquidRenderer.Object,
-                slugifier
+                slugifier,
+                mapper
             );
 
             var (filePath, canonicalPath) = siteBuilder.GetPaths(template, metadata);
@@ -243,7 +252,8 @@ namespace Lockdown.Test
                 moqYamlParser.Object,
                 moqMarkdownRenderer.Object,
                 dotLiquidRenderer,
-                slugifier
+                slugifier,
+                mapper
             );
 
             // Act
