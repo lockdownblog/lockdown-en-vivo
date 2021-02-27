@@ -22,5 +22,7 @@
         public List<string> PostRoutes { get; set; }
 
         public string TagIndexRoute { get; set; }
+
+        public string TagPageRoute { get; set; }
     }
 }

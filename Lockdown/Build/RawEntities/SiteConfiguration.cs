@@ -31,5 +31,8 @@
 
         [YamlMember(Alias = "tag-index-route")]
         public string TagIndexRoute { get; set; }
+
+        [YamlMember(Alias = "tag-page-route")]
+        public string TagPageRoute { get; set; }
     }
 }
