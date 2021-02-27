@@ -7,3 +7,4 @@ social:
 post-routes:
     - /post/{}/index.html
     - /post/{}.html
+tag-index-route: tag/{}/index.html

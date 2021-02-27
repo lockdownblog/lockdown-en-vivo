@@ -1,4 +1,4 @@
-namespace Lockdown.Build
+﻿namespace Lockdown.Build
 {
     using System;
     using System.Collections.Generic;
@@ -59,9 +59,11 @@ namespace Lockdown.Build
             var rawSiteConfiguration = this.ReadSiteConfiguration(inputPath);
             this.siteConfiguration = this.mapper.Map<SiteConfiguration>(rawSiteConfiguration);
 
-            var rawPosts = this.GetPosts(inputPath);
+            var postMetadata = new List<(PostMetadata metadata, string content)>();
 
-            var postMetadata = new List<PostMetadata>();
+            var tagPosts = new Dictionary<string, (string urlPath, List<PostMetadata> metadatas)>();
+
+            var rawPosts = this.GetPosts(inputPath).ToList();
 
             foreach (var rawPost in rawPosts)
             {
@@ -69,14 +71,45 @@ namespace Lockdown.Build
                 var metadatos = this.ConvertMetadata(rawMetadata);
 
                 var mainRoute = rawSiteConfiguration.PostRoutes.First();
-
-                (string _, string canonicalPath) = this.GetPaths(mainRoute, metadatos);
-
+                (string _, string canonicalPath) = this.GetPostPaths(mainRoute, metadatos);
                 metadatos.CanonicalUrl = canonicalPath;
 
-                postMetadata.Add(metadatos);
+                foreach (var tag in metadatos.TagArray)
+                {
+                    if (!tagPosts.ContainsKey(tag))
+                    {
+                        var (tagOutputPath, _) = this.GetPaths(this.siteConfiguration.TagIndexRoute, tag);
+                        tagPosts[tag] = (tagOutputPath, new List<PostMetadata>());
+                    }
 
-                var renderedPost = this.RenderContent(metadatos, rawContent, inputPath);
+                    tagPosts[tag].metadatas.Add(metadatos);
+                }
+
+                postMetadata.Add((metadatos, rawContent));
+            }
+
+            foreach (var (key, (outputFile, posts)) in tagPosts)
+            {
+                var fileText = this.fileSystem.File.ReadAllText(this.fileSystem.Path.Combine(inputPath, "templates", "_tag_page.liquid"));
+                var renderVars = new
+                {
+                    site = this.siteConfiguration,
+                    articles = posts,
+                    tag_name = key,
+                };
+                var renderedContent = this.liquidRenderer.Render(fileText, renderVars);
+                this.WriteFile(this.fileSystem.Path.Combine(outputPath, outputFile), renderedContent);
+            }
+
+            // Write posts
+            foreach (var (metadatos, content) in postMetadata)
+            {
+                var renderedPost = this.RenderContent(metadatos, content, inputPath);
+
+                foreach (var tag in metadatos.TagArray)
+                {
+                    var (_, canonicalTag) = this.GetPaths(this.siteConfiguration.TagIndexRoute, tag);
+                }
 
                 foreach (string pathTemplate in rawSiteConfiguration.PostRoutes)
                 {
@@ -85,7 +118,7 @@ namespace Lockdown.Build
                 }
             }
 
-            this.WriteIndex(postMetadata, inputPath, outputPath);
+            this.WriteIndex(postMetadata.Select(element => element.metadata), inputPath, outputPath);
         }
 
         public virtual List<List<T>> SplitChunks<T>(List<T> values, int size = 30)
@@ -101,14 +134,18 @@ namespace Lockdown.Build
             return list;
         }
 
-        public virtual void WriteIndex(List<PostMetadata> posts, string rootPath, string outputPath)
+        public virtual void WriteTags()
+        {
+
+        }
+
+        public virtual void WriteIndex(IEnumerable<PostMetadata> posts, string rootPath, string outputPath)
         {
             var orderedPosts = posts.OrderBy(post => post.Date).Reverse().ToList();
             var splits = this.SplitChunks(orderedPosts, size: 10);
 
             for (int currentPage = 0; currentPage < splits.Count; currentPage++)
             {
-
                 var paginator = this.CreatePaginator(splits, currentPage);
 
                 var fileText = this.fileSystem.File.ReadAllText(this.fileSystem.Path.Combine(rootPath, "templates", "_index.liquid"));

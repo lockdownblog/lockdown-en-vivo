@@ -28,5 +28,8 @@
 
         [YamlMember(Alias = "post-routes")]
         public List<string> PostRoutes { get; set; }
+
+        [YamlMember(Alias = "tag-index-route")]
+        public string TagIndexRoute { get; set; }
     }
 }
