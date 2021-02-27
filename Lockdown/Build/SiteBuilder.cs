@@ -1,4 +1,4 @@
-﻿namespace Lockdown.Build
+namespace Lockdown.Build
 {
     using System;
     using System.Collections.Generic;
@@ -80,7 +80,7 @@
 
                 foreach (string pathTemplate in rawSiteConfiguration.PostRoutes)
                 {
-                    (string filePath, string _) = this.GetPaths(pathTemplate, metadatos);
+                    (string filePath, string _) = this.GetPostPaths(pathTemplate, metadatos);
                     this.WriteFile(this.fileSystem.Path.Combine(outputPath, filePath), renderedPost);
                 }
             }
@@ -244,10 +244,15 @@
             this.fileSystem.File.WriteAllText(filePath, content);
         }
 
-        public virtual (string filePath, string canonicalPath) GetPaths(string pathTemplate, PostMetadata metadata)
+        public virtual (string filePath, string canonicalPath) GetPostPaths(string pathTemplate, PostMetadata metadata)
         {
             var postSlug = this.slugifier.Slugify(metadata.Title);
-            pathTemplate = pathTemplate.Replace("{}", postSlug).TrimStart('/');
+            return this.GetPaths(pathTemplate, postSlug);
+        }
+
+        private (string filePath, string canonicalPath) GetPaths(string pathTemplate, string replaementValue)
+        {
+            pathTemplate = pathTemplate.Replace("{}", replaementValue).TrimStart('/');
 
             var filePath = pathTemplate.EndsWith(".html") ?
                 pathTemplate : this.fileSystem.Path.Combine(pathTemplate, "index.html").Replace('\\', '/');
@@ -255,7 +260,7 @@
             var canonicalPath = pathTemplate.EndsWith("/index.html") ?
                 pathTemplate.Substring(0, pathTemplate.Length - 11) : pathTemplate;
 
-            return (filePath, canonicalPath);
+            return (filePath, $"/{canonicalPath}");
         }
 
         private Raw.SiteConfiguration ReadSiteConfiguration(string inputPath)
