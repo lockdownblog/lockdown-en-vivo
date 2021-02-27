@@ -17,8 +17,12 @@
 
         public string SiteUrl { get; set; }
 
-        public List<SocialLink> Social { get; set; }
+        public List<Link> Social { get; set; }
 
         public List<string> PostRoutes { get; set; }
+
+        public string TagIndexRoute { get; set; }
+
+        public string TagPageRoute { get; set; }
     }
 }

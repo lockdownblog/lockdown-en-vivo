@@ -175,16 +175,16 @@ namespace Lockdown.Test
         }
 
         [Theory]
-        [InlineData("/{}.html", "hello-world.html", "hello-world.html")]
-        [InlineData("{}.html", "hello-world.html", "hello-world.html")]
-        [InlineData("/{}", "hello-world/index.html", "hello-world")]
-        [InlineData("/post/{}", "post/hello-world/index.html", "post/hello-world")]
-        [InlineData("/post/{}/index.html", "post/hello-world/index.html", "post/hello-world")]
+        [InlineData("/{}.html", "hello-world.html", "/hello-world.html")]
+        [InlineData("{}.html", "hello-world.html", "/hello-world.html")]
+        [InlineData("/{}", "hello-world/index.html", "/hello-world")]
+        [InlineData("/post/{}", "post/hello-world/index.html", "/post/hello-world")]
+        [InlineData("/post/{}/index.html", "post/hello-world/index.html", "/post/hello-world")]
         public void TestGetRoutes(string template, string fileExpected, string canonicalExpected)
         {
             var metadata = new PostMetadata { Title = "Hello World" };
 
-            var (filePath, canonicalPath) = genericSiteBuilder.GetPaths(template, metadata);
+            var (filePath, canonicalPath) = genericSiteBuilder.GetPostPaths(template, metadata);
 
             filePath.ShouldBe(fileExpected);
             canonicalPath.ShouldBe(canonicalExpected);

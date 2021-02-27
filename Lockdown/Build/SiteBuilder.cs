@@ -59,9 +59,12 @@
             var rawSiteConfiguration = this.ReadSiteConfiguration(inputPath);
             this.siteConfiguration = this.mapper.Map<SiteConfiguration>(rawSiteConfiguration);
 
-            var rawPosts = this.GetPosts(inputPath);
+            var postMetadata = new List<(PostMetadata metadata, string content)>();
 
-            var postMetadata = new List<PostMetadata>();
+            var tagPosts = new Dictionary<string, (string urlPath, List<PostMetadata> metadatas)>();
+            var tagCanonicalUrl = new Dictionary<string, Link>();
+
+            var rawPosts = this.GetPosts(inputPath).ToList();
 
             foreach (var rawPost in rawPosts)
             {
@@ -69,23 +72,33 @@
                 var metadatos = this.ConvertMetadata(rawMetadata);
 
                 var mainRoute = rawSiteConfiguration.PostRoutes.First();
-
-                (string _, string canonicalPath) = this.GetPaths(mainRoute, metadatos);
-
+                (string _, string canonicalPath) = this.GetPostPaths(mainRoute, metadatos);
                 metadatos.CanonicalUrl = canonicalPath;
 
-                postMetadata.Add(metadatos);
-
-                var renderedPost = this.RenderContent(metadatos, rawContent, inputPath);
-
-                foreach (string pathTemplate in rawSiteConfiguration.PostRoutes)
+                foreach (var tag in metadatos.TagArray)
                 {
-                    (string filePath, string _) = this.GetPaths(pathTemplate, metadatos);
-                    this.WriteFile(this.fileSystem.Path.Combine(outputPath, filePath), renderedPost);
+                    if (!tagPosts.ContainsKey(tag))
+                    {
+                        var (tagOutputPath, canonicalUrl) = this.GetPaths(this.siteConfiguration.TagPageRoute, tag);
+                        tagCanonicalUrl[tag] = new Link { Url = canonicalUrl, Text = tag };
+                        tagPosts[tag] = (tagOutputPath, new List<PostMetadata>());
+                    }
+
+                    tagPosts[tag].metadatas.Add(metadatos);
                 }
+
+                metadatos.Tags = metadatos.TagArray.Select(tag => tagCanonicalUrl[tag]).ToArray();
+
+                postMetadata.Add((metadatos, rawContent));
             }
 
-            this.WriteIndex(postMetadata, inputPath, outputPath);
+            this.WriteTags(inputPath, outputPath, tagPosts);
+
+            this.WriteTagIndex(inputPath, outputPath, tagCanonicalUrl.Values);
+
+            this.WritePosts(inputPath, outputPath, rawSiteConfiguration, postMetadata);
+
+            this.WriteIndex(postMetadata.Select(element => element.metadata), inputPath, outputPath);
         }
 
         public virtual List<List<T>> SplitChunks<T>(List<T> values, int size = 30)
@@ -101,14 +114,62 @@
             return list;
         }
 
-        public virtual void WriteIndex(List<PostMetadata> posts, string rootPath, string outputPath)
+        public virtual void WritePosts(string inputPath, string outputPath, Raw.SiteConfiguration rawSiteConfiguration, List<(PostMetadata metadata, string content)> postMetadata)
+        {
+            foreach (var (metadatos, content) in postMetadata)
+            {
+                var renderedPost = this.RenderContent(metadatos, content, inputPath);
+
+                foreach (var tag in metadatos.TagArray)
+                {
+                    var (_, canonicalTag) = this.GetPaths(this.siteConfiguration.TagIndexRoute, tag);
+                }
+
+                foreach (string pathTemplate in rawSiteConfiguration.PostRoutes)
+                {
+                    (string filePath, string _) = this.GetPostPaths(pathTemplate, metadatos);
+                    this.WriteFile(this.fileSystem.Path.Combine(outputPath, filePath), renderedPost);
+                }
+            }
+        }
+
+        public virtual void WriteTagIndex(string inputPath, string outputPath, IEnumerable<Link> tagPosts)
+        {
+            var fileText = this.fileSystem.File.ReadAllText(this.fileSystem.Path.Combine(inputPath, "templates", "_tag_index.liquid"));
+
+            var (tagOutputPath, _) = this.GetPaths(this.siteConfiguration.TagIndexRoute, null);
+            var renderVars = new
+            {
+                site = this.siteConfiguration,
+                tags = tagPosts,
+            };
+            var renderedContent = this.liquidRenderer.Render(fileText, renderVars);
+            this.WriteFile(this.fileSystem.Path.Combine(outputPath, tagOutputPath), renderedContent);
+        }
+
+        public virtual void WriteTags(string inputPath, string outputPath, Dictionary<string, (string urlPath, List<PostMetadata> metadatas)> tagPosts)
+        {
+            foreach (var (key, (outputFile, posts)) in tagPosts)
+            {
+                var fileText = this.fileSystem.File.ReadAllText(this.fileSystem.Path.Combine(inputPath, "templates", "_tag_page.liquid"));
+                var renderVars = new
+                {
+                    site = this.siteConfiguration,
+                    articles = posts,
+                    tag_name = key,
+                };
+                var renderedContent = this.liquidRenderer.Render(fileText, renderVars);
+                this.WriteFile(this.fileSystem.Path.Combine(outputPath, outputFile), renderedContent);
+            }
+        }
+
+        public virtual void WriteIndex(IEnumerable<PostMetadata> posts, string rootPath, string outputPath)
         {
             var orderedPosts = posts.OrderBy(post => post.Date).Reverse().ToList();
             var splits = this.SplitChunks(orderedPosts, size: 10);
 
             for (int currentPage = 0; currentPage < splits.Count; currentPage++)
             {
-
                 var paginator = this.CreatePaginator(splits, currentPage);
 
                 var fileText = this.fileSystem.File.ReadAllText(this.fileSystem.Path.Combine(rootPath, "templates", "_index.liquid"));
@@ -244,10 +305,15 @@
             this.fileSystem.File.WriteAllText(filePath, content);
         }
 
-        public virtual (string filePath, string canonicalPath) GetPaths(string pathTemplate, PostMetadata metadata)
+        public virtual (string filePath, string canonicalPath) GetPostPaths(string pathTemplate, PostMetadata metadata)
         {
             var postSlug = this.slugifier.Slugify(metadata.Title);
-            pathTemplate = pathTemplate.Replace("{}", postSlug).TrimStart('/');
+            return this.GetPaths(pathTemplate, postSlug);
+        }
+
+        private (string filePath, string canonicalPath) GetPaths(string pathTemplate, string replaementValue)
+        {
+            pathTemplate = pathTemplate.Replace("{}", replaementValue).TrimStart('/');
 
             var filePath = pathTemplate.EndsWith(".html") ?
                 pathTemplate : this.fileSystem.Path.Combine(pathTemplate, "index.html").Replace('\\', '/');
@@ -255,7 +321,7 @@
             var canonicalPath = pathTemplate.EndsWith("/index.html") ?
                 pathTemplate.Substring(0, pathTemplate.Length - 11) : pathTemplate;
 
-            return (filePath, canonicalPath);
+            return (filePath, $"/{canonicalPath}");
         }
 
         private Raw.SiteConfiguration ReadSiteConfiguration(string inputPath)

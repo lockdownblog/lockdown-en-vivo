@@ -2,8 +2,10 @@ title: "Your new blog!"
 subtitle: Edit this subtitle in the site.yml file
 default-author: Awesome You
 social:
-    - name: GitHub
-      link: https://github.com/lockdown-blog/lockdown
+    - text: GitHub
+      url: https://github.com/lockdown-blog/lockdown
 post-routes:
     - /post/{}/index.html
     - /post/{}.html
+tag-page-route: tag/{}/index.html
+tag-index-route: tag/index.html
