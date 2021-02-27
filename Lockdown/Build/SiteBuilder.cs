@@ -61,19 +61,22 @@
 
             var rawPosts = this.GetPosts(inputPath);
 
+            var postMetadata = new List<PostMetadata>();
+
             foreach (var rawPost in rawPosts)
             {
-                var post = this.SplitPost(rawPost);
-                var metadatos = this.ConvertMetadata(post.Item1);
+                var (rawMetadata, rawContent) = this.SplitPost(rawPost);
+                var metadatos = this.ConvertMetadata(rawMetadata);
 
                 var mainRoute = rawSiteConfiguration.PostRoutes.First();
 
                 (string _, string canonicalPath) = this.GetPaths(mainRoute, metadatos);
 
                 metadatos.CanonicalUrl = canonicalPath;
-                var postContent = post.Item2;
 
-                var renderedPost = this.RenderContent(metadatos, postContent, inputPath);
+                postMetadata.Add(metadatos);
+
+                var renderedPost = this.RenderContent(metadatos, rawContent, inputPath);
 
                 foreach (string pathTemplate in rawSiteConfiguration.PostRoutes)
                 {
@@ -81,6 +84,81 @@
                     this.WriteFile(this.fileSystem.Path.Combine(outputPath, filePath), renderedPost);
                 }
             }
+
+            this.WriteIndex(postMetadata, inputPath, outputPath);
+        }
+
+        public virtual List<List<T>> SplitChunks<T>(List<T> values, int size = 30)
+        {
+            List<List<T>> list = new List<List<T>>();
+            for (int i = 0; i < values.Count; i += size)
+            {
+                var finalSize = Math.Min(size, values.Count - i);
+                var content = values.GetRange(i, finalSize);
+                list.Add(content);
+            }
+
+            return list;
+        }
+
+        public virtual void WriteIndex(List<PostMetadata> posts, string rootPath, string outputPath)
+        {
+            var orderedPosts = posts.OrderBy(post => post.Date).Reverse().ToList();
+            var splits = this.SplitChunks(orderedPosts, size: 10);
+
+            for (int currentPage = 0; currentPage < splits.Count; currentPage++)
+            {
+
+                var paginator = this.CreatePaginator(splits, currentPage);
+
+                var fileText = this.fileSystem.File.ReadAllText(this.fileSystem.Path.Combine(rootPath, "templates", "_index.liquid"));
+
+                var renderVars = new
+                {
+                    site = this.siteConfiguration,
+                    paginator = paginator,
+                    posts = orderedPosts,
+                };
+
+                var rendered = this.liquidRenderer.Render(fileText, renderVars);
+                using var stream = this.fileSystem.File.OpenWrite(this.fileSystem.Path.Combine(outputPath, paginator.CurrentPageUrl));
+                using var file = new StreamWriter(stream);
+                file.Write(rendered);
+            }
+        }
+
+        public virtual Paginator CreatePaginator(List<List<PostMetadata>> splits, int currentPage)
+        {
+            var (previousIndex, index, nextIndex) = this.GenerateIndexNames(currentPage, splits.Count);
+
+            return new Paginator()
+            {
+                PageCount = splits.Count,
+                CurrentPage = currentPage,
+                CurrentPageUrl = index,
+                HasNextPage = nextIndex is not null,
+                HasPreviousPage = previousIndex is not null,
+                PreviousPage = currentPage - 1,
+                NextPage = currentPage + 1,
+                NextPageUrl = nextIndex,
+                PreviousPageUrl = previousIndex,
+                Posts = splits[currentPage],
+            };
+        }
+
+        public virtual (string previousIndex, string currentIndex, string nextIndex) GenerateIndexNames(int currentPage, int pageCount)
+        {
+            var first = currentPage == 0;
+            var last = currentPage == pageCount - 1;
+            var index = currentPage == 0 ? "index.html" : $"index-{currentPage}.html";
+            var previousIndex = $"index-{currentPage - 1}.html";
+            var nextIndex = $"index-{currentPage + 1}.html";
+            if (currentPage - 1 == 0)
+            {
+                previousIndex = "index.html";
+            }
+
+            return (first ? null : previousIndex, index, last ? null : nextIndex);
         }
 
         public virtual string RenderContent(PostMetadata metadata, string content, string inputPath)
@@ -110,7 +188,7 @@
             return this.mapper.Map<PostMetadata>(rawMetadata);
         }
 
-        public virtual Tuple<string, string> SplitPost(string post)
+        public virtual (string metadata, string content) SplitPost(string post)
         {
             var metadatStringBulder = new StringBuilder();
             var contentStringBuilder = new StringBuilder();
@@ -132,9 +210,7 @@
                 }
             }
 
-            return Tuple.Create(
-                metadatStringBulder.ToString(),
-                contentStringBuilder.ToString());
+            return (metadatStringBulder.ToString(), contentStringBuilder.ToString());
         }
 
         public virtual IEnumerable<string> GetPosts(string inputPath)
