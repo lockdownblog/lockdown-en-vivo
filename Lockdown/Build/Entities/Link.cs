@@ -2,10 +2,10 @@
 {
     using DotLiquid;
 
-    public class SocialLink : Drop
+    public class Link : Drop
     {
         public string Name { get; set; }
 
-        public string Link { get; set; }
+        public string Url { get; set; }
     }
 }

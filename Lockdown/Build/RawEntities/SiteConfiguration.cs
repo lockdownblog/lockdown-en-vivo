@@ -24,7 +24,7 @@
         public bool PagesInTags { get; set; }
 
         [YamlMember(Alias = "social")]
-        public List<SocialLink> Social { get; set; }
+        public List<Link> Social { get; set; }
 
         [YamlMember(Alias = "post-routes")]
         public List<string> PostRoutes { get; set; }

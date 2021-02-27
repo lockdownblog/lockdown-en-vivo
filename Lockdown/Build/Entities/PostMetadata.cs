@@ -9,6 +9,8 @@
 
         public DateTime Date { get; set; }
 
+        public string[] TagArray { get; set; }
+
         public string CanonicalUrl { get; set; }
     }
 }

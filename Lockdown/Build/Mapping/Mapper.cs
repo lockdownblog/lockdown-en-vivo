@@ -14,6 +14,7 @@
                 cfg.CreateMap<Raw.PostMetadata, PostMetadata>()
                     .ForMember(dest => dest.Context, opt => opt.Ignore())
                     .ForMember(dest => dest.CanonicalUrl, opt => opt.Ignore())
+                    .ForMember(dest => dest.TagArray, opt => opt.MapFrom(src => src.TagArray))
                     .ForMember(
                         dest => dest.Date,
                         opt => opt.MapFrom(
@@ -23,7 +24,7 @@
                 cfg.CreateMap<Raw.SiteConfiguration, SiteConfiguration>()
                     .ForMember(dest => dest.Context, opt => opt.Ignore());
 
-                cfg.CreateMap<Raw.SocialLink, SocialLink>()
+                cfg.CreateMap<Raw.Link, Link>()
                     .ForMember(dest => dest.Context, opt => opt.Ignore());
             });
 

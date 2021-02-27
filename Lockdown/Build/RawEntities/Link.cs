@@ -2,12 +2,12 @@
 {
     using YamlDotNet.Serialization;
 
-    public class SocialLink
+    public class Link
     {
         [YamlMember(Alias = "name")]
         public string Name { get; set; }
 
-        [YamlMember(Alias = "link")]
-        public string Link { get; set; }
+        [YamlMember(Alias = "url")]
+        public string Url { get; set; }
     }
 }

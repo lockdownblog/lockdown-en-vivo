@@ -3,7 +3,7 @@ subtitle: Edit this subtitle in the site.yml file
 default-author: Awesome You
 social:
     - name: GitHub
-      link: https://github.com/lockdown-blog/lockdown
+      url: https://github.com/lockdown-blog/lockdown
 post-routes:
     - /post/{}/index.html
     - /post/{}.html
