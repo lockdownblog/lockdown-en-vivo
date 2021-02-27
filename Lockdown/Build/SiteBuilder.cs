@@ -63,17 +63,16 @@
 
             foreach (var rawPost in rawPosts)
             {
-                var post = this.SplitPost(rawPost);
-                var metadatos = this.ConvertMetadata(post.Item1);
+                var (rawMetadata, rawContent) = this.SplitPost(rawPost);
+                var metadatos = this.ConvertMetadata(rawMetadata);
 
                 var mainRoute = rawSiteConfiguration.PostRoutes.First();
 
                 (string _, string canonicalPath) = this.GetPaths(mainRoute, metadatos);
 
                 metadatos.CanonicalUrl = canonicalPath;
-                var postContent = post.Item2;
 
-                var renderedPost = this.RenderContent(metadatos, postContent, inputPath);
+                var renderedPost = this.RenderContent(metadatos, rawContent, inputPath);
 
                 foreach (string pathTemplate in rawSiteConfiguration.PostRoutes)
                 {
@@ -110,7 +109,7 @@
             return this.mapper.Map<PostMetadata>(rawMetadata);
         }
 
-        public virtual Tuple<string, string> SplitPost(string post)
+        public virtual (string metadata, string content) SplitPost(string post)
         {
             var metadatStringBulder = new StringBuilder();
             var contentStringBuilder = new StringBuilder();
@@ -132,9 +131,7 @@
                 }
             }
 
-            return Tuple.Create(
-                metadatStringBulder.ToString(),
-                contentStringBuilder.ToString());
+            return (metadatStringBulder.ToString(), contentStringBuilder.ToString());
         }
 
         public virtual IEnumerable<string> GetPosts(string inputPath)
