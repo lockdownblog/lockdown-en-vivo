@@ -28,6 +28,7 @@ namespace Lockdown.Test
         private readonly Mock<IYamlParser> moqYamlParser;
         private readonly Mock<IMarkdownRenderer> moqMarkdownRenderer;
         private readonly Mock<ILiquidRenderer> moqLiquidRenderer;
+        private readonly SiteBuilder genericSiteBuilder;
 
         const string inputPath = "./input";
         const string output = "./output";
@@ -41,6 +42,14 @@ namespace Lockdown.Test
             moqLiquidRenderer = new Mock<ILiquidRenderer>();
             slugifier = new Slugifier();
             mapper = Build.Mapping.Mapper.GetMapper();
+            genericSiteBuilder = new SiteBuilder(
+                fakeFileSystem,
+                moqYamlParser.Object,
+                moqMarkdownRenderer.Object,
+                moqLiquidRenderer.Object,
+                slugifier,
+                mapper
+            );
         }
 
         [Fact]
@@ -51,17 +60,9 @@ namespace Lockdown.Test
             fakeFileSystem.Directory.CreateDirectory(output);
             fakeFileSystem.File.WriteAllText(fakeFilePath, "hola mundo");
 
-            var siteBuilder = new SiteBuilder(
-                fakeFileSystem,
-                moqYamlParser.Object,
-                moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object,
-                slugifier,
-                mapper
-            );
 
             // Act
-            siteBuilder.CleanFolder(output);
+            genericSiteBuilder.CleanFolder(output);
 
             // Asserts
             this.AssertDirectoryIsEmpty(output);
@@ -70,18 +71,8 @@ namespace Lockdown.Test
         [Fact]
         public void TestOutputFolderDoesNotExist()
         {
-            // Setup
-            var siteBuilder = new SiteBuilder(
-                fakeFileSystem,
-                moqYamlParser.Object,
-                moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object,
-                slugifier,
-                mapper
-            );
-
             // Act
-            siteBuilder.CleanFolder(output);
+            genericSiteBuilder.CleanFolder(output);
 
             // Asserts
             this.AssertDirectoryIsEmpty(output);
@@ -144,19 +135,11 @@ namespace Lockdown.Test
         [Fact]
         public void TestWriteFile()
         {
-            var siteBuilder = new SiteBuilder(
-                fakeFileSystem,
-                moqYamlParser.Object,
-                moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object,
-                slugifier,
-                mapper
-            );
             var destination = fakeFileSystem.Path.Combine(inputPath, "some", "folder", "file.txt");
             var content = "Hello world!";
 
             // Act
-            siteBuilder.WriteFile(destination, content);
+            genericSiteBuilder.WriteFile(destination, content);
 
             // Assert
             fakeFileSystem.File.ReadAllText(destination).ShouldBe(content);
@@ -185,16 +168,8 @@ namespace Lockdown.Test
                 this.fakeFileSystem.File.WriteAllText(postPath, content);
                 fileContents.Add(content);
             }
-            var siteBuilder = new SiteBuilder(
-                fakeFileSystem,
-                moqYamlParser.Object,
-                moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object,
-                slugifier,
-                mapper
-            );
 
-            var posts = siteBuilder.GetPosts(inputPath);
+            var posts = genericSiteBuilder.GetPosts(inputPath);
 
             posts.OrderBy(content => content).ShouldBe(fileContents);
         }
@@ -208,16 +183,8 @@ namespace Lockdown.Test
         public void TestGetRoutes(string template, string fileExpected, string canonicalExpected)
         {
             var metadata = new PostMetadata { Title = "Hello World" };
-            var siteBuilder = new SiteBuilder(
-                fakeFileSystem,
-                moqYamlParser.Object,
-                moqMarkdownRenderer.Object,
-                moqLiquidRenderer.Object,
-                slugifier,
-                mapper
-            );
 
-            var (filePath, canonicalPath) = siteBuilder.GetPaths(template, metadata);
+            var (filePath, canonicalPath) = genericSiteBuilder.GetPaths(template, metadata);
 
             filePath.ShouldBe(fileExpected);
             canonicalPath.ShouldBe(canonicalExpected);
@@ -268,6 +235,39 @@ namespace Lockdown.Test
 
             var bold = html.All.First(node => node.LocalName == "b");
             bold.TextContent.ShouldBe("Content");
+        }
+
+
+        [Theory]
+        [InlineData(0, 1, null, "index.html", null)]
+        [InlineData(0, 2, null, "index.html", "index-1.html")]
+        [InlineData(1, 2, "index.html", "index-1.html", null)]
+        [InlineData(1, 3, "index.html", "index-1.html", "index-2.html")]
+        public void TestGenerateIndexNames(int currentPage, int pageCount, string previous, string current, string next)
+        {
+            var (actualPrevious, actualCurrent, actualNext) = genericSiteBuilder.GenerateIndexNames(currentPage, pageCount);
+
+            Assert.Equal(previous, actualPrevious);
+            Assert.Equal(next, actualNext);
+            actualCurrent.ShouldBe(current);
+        }
+
+        [Theory]
+        [InlineData(10, 2, 2)]
+        [InlineData(9, 2, 1)]
+        [InlineData(1, 2, 1)]
+        [InlineData(1, 1, 1)]
+        public void SplitChunks(int totalSize, int chunkSize, int lastSize)
+        {
+            var collection = Enumerable.Range(0, totalSize).ToList();
+
+            var chunks = genericSiteBuilder.SplitChunks(collection, chunkSize);
+
+            chunks.Last().Count().ShouldBe(lastSize);
+            foreach (var chunk in chunks.SkipLast(1))
+            {
+                chunk.Count().ShouldBe(chunkSize);
+            }
         }
     }
 }
